@@ -6,7 +6,7 @@ import MensaKrabbler
 
 # Führe die MensaKrabbler.run-Funktion für jeden Wochentag der aktuellen Woche (Montag bis Freitag) aus und speichere das Ergebnis in einer Liste
 # speisen_recommendation_strings = [MensaKrabbler.run(weekday, False) for weekday in MensaKrabbler.Weekday.weekdays]
-speisen_recommendation_dataframes = [MensaKrabbler.run(weekday, True) for weekday in MensaKrabbler.Weekday.weekdays if weekday != MensaKrabbler.Weekday.THURSDAY]
+speisen_recommendation_dataframes = [MensaKrabbler.run(weekday, True) for weekday in MensaKrabbler.Weekday.weekdays]
 
 # # Erstelle einen JavaScript-Code für jede Woche basierend auf den Werten in speisen_recommendation_strings
 # javascript_code = """
@@ -141,8 +141,8 @@ import pandas as pd
 speisen_recommendation_dataframes[0].to_html('Website/monday_table.html', index=False)
 speisen_recommendation_dataframes[1].to_html('Website/tuesday_table.html', index=False)
 speisen_recommendation_dataframes[2].to_html('Website/wednesday_table.html', index=False)
-# speisen_recommendation_dataframes[3].to_html('Website/thursday_table.html', index=False)
-speisen_recommendation_dataframes[3].to_html('Website/friday_table.html', index=False)
+speisen_recommendation_dataframes[3].to_html('Website/thursday_table.html', index=False)
+speisen_recommendation_dataframes[4].to_html('Website/friday_table.html', index=False)
 
 # Lies den Inhalt der HTML-Dateien ein
 with open('Website/monday_table.html', 'r') as f:
