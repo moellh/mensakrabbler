@@ -6,7 +6,11 @@ import MensaKrabbler
 
 # Führe die MensaKrabbler.run-Funktion für jeden Wochentag der aktuellen Woche (Montag bis Freitag) aus und speichere das Ergebnis in einer Liste
 # speisen_recommendation_strings = [MensaKrabbler.run(weekday, False) for weekday in MensaKrabbler.Weekday.weekdays]
-speisen_recommendation_dataframes = [MensaKrabbler.run(weekday, True) for weekday in MensaKrabbler.Weekday.weekdays]
+speisen_recommendation_dataframes = [
+    MensaKrabbler.run(weekday, True)
+    for weekday in MensaKrabbler.Weekday.weekdays
+    if weekday != MensaKrabbler.Weekday.THURSDAY
+]
 
 # # Erstelle einen JavaScript-Code für jede Woche basierend auf den Werten in speisen_recommendation_strings
 # javascript_code = """
@@ -50,16 +54,7 @@ speisen_recommendation_dataframes = [MensaKrabbler.run(weekday, True) for weekda
 # os.system('git push')
 
 
-
-
-
-
-
 # SECOND TRY
-
-
-
-
 
 
 # table_rows = ""
@@ -124,12 +119,7 @@ speisen_recommendation_dataframes = [MensaKrabbler.run(weekday, True) for weekda
 #     html_file.write(html_code)
 
 
-
-
-
 # THIRD TRY
-
-
 
 
 import pandas as pd
@@ -138,22 +128,24 @@ import pandas as pd
 # und sie sind in den Variablen monday_df, tuesday_df, wednesday_df, thursday_df und friday_df gespeichert
 
 # Exportiere die DataFrames als separate HTML-Dateien
-speisen_recommendation_dataframes[0].to_html('Website/monday_table.html', index=False)
-speisen_recommendation_dataframes[1].to_html('Website/tuesday_table.html', index=False)
-speisen_recommendation_dataframes[2].to_html('Website/wednesday_table.html', index=False)
-speisen_recommendation_dataframes[3].to_html('Website/thursday_table.html', index=False)
-speisen_recommendation_dataframes[4].to_html('Website/friday_table.html', index=False)
+speisen_recommendation_dataframes[0].to_html("Website/monday_table.html", index=False)
+speisen_recommendation_dataframes[1].to_html("Website/tuesday_table.html", index=False)
+speisen_recommendation_dataframes[2].to_html(
+    "Website/wednesday_table.html", index=False
+)
+# speisen_recommendation_dataframes[3].to_html("Website/thursday_table.html", index=False)
+speisen_recommendation_dataframes[3].to_html("Website/friday_table.html", index=False)
 
 # Lies den Inhalt der HTML-Dateien ein
-with open('Website/monday_table.html', 'r') as f:
+with open("Website/monday_table.html", "r") as f:
     monday_html = f.read()
-with open('Website/tuesday_table.html', 'r') as f:
+with open("Website/tuesday_table.html", "r") as f:
     tuesday_html = f.read()
-with open('Website/wednesday_table.html', 'r') as f:
+with open("Website/wednesday_table.html", "r") as f:
     wednesday_html = f.read()
-with open('Website/thursday_table.html', 'r') as f:
+with open("Website/thursday_table.html", "r") as f:
     thursday_html = f.read()
-with open('Website/friday_table.html', 'r') as f:
+with open("Website/friday_table.html", "r") as f:
     friday_html = f.read()
 
 # Erzeuge den HTML-Code für die kombinierte Seite mit Button-Auswahl
@@ -201,16 +193,16 @@ html_template = """
 </html>
 """
 
-date = datetime.datetime.now().strftime('%Y-%m-%d')
+date = datetime.datetime.now().strftime("%Y-%m-%d")
 
 # get the weekday name of the date in german
 actual_location = locale.getlocale()
-locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
-weekDayGerman = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%A')
+locale.setlocale(locale.LC_TIME, "de_DE.UTF-8")
+weekDayGerman = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%A")
 locale.setlocale(locale.LC_TIME, actual_location)
 
 # get the date in format: dd.mm.yyyy
-dateForOutput = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%d.%m.%Y')
+dateForOutput = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%d.%m.%Y")
 
 # Ersetze die Platzhalter im HTML-Template mit den entsprechenden Tabelleninhalten
 html_content = html_template.format(
@@ -219,14 +211,18 @@ html_content = html_template.format(
     wednesday_html=wednesday_html,
     thursday_html=thursday_html,
     friday_html=friday_html,
-    date_updated=('Zuletzt geupdatet am: ' + weekDayGerman + ', ' + dateForOutput)
+    date_updated=("Zuletzt geupdatet am: " + weekDayGerman + ", " + dateForOutput),
 )
 
 # Speichere den kombinierten HTML-Code in einer Datei
-with open('index.html', 'w') as f:
+with open("index.html", "w") as f:
     f.write(html_content)
 
 # speichere die HTML-Datei und commite sie in git
-os.system('git add index.html')
-os.system('git commit -m "Update index.html{}"'.format(datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S")))
-os.system('git push')
+os.system("git add index.html")
+os.system(
+    'git commit -m "Update index.html{}"'.format(
+        datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S")
+    )
+)
+os.system("git push")
