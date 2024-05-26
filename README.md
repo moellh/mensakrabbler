@@ -1,4 +1,8 @@
 # MensaKrabbler
-To see the recommendations run the MensaKrabblerGUI.py and choose a day.
 
-Most recent live version is in branch web-version and is live under mensakrabbler.tomebert.de.
+> Original idea and implementation by [Tom Ebert](https://github.com/TomEbert)
+> at [TomEbert/MensaKrabbler](https://github.com/TomEbert/MensaKrabbler) 
+> which is unfortunately not maintained and not updated every week.
+
+- hosted at [moellh.com/mensakrabbler](https://moellh.com/mensakrabbler)
+- contains list of all mensa dishes of the week, sorted by proteins by price
