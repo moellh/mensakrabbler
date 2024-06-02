@@ -1,0 +1,314 @@
+import datetime
+import locale
+import warnings
+
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+from mensa import Weekday
+
+
+def today(weekday: Weekday) -> str:
+    """
+    Returns current date as string.
+
+    Only considers weekdays (monday through friday) and therefore returns the
+    next such weekday.
+    """
+
+    date = datetime.date.today() + datetime.timedelta(
+        days=(Weekday(weekday.value).value - datetime.date.today().weekday()) % 7
+    )
+    return date.strftime("%Y-%m-%d")
+
+
+def crawl(weekday: Weekday):
+
+    date = today(weekday)
+
+    request = requests.post(
+        # see https://www.studierendenwerk-stuttgart.de/essen/speiseplan
+        url="https://sws2.maxmanager.xyz/inc/ajax-php_konnektor.inc.php",
+        headers={
+            "Host": "sws2.maxmanager.xyz",
+            "Origin": "https://sws2.maxmanager.xyz",
+            "Referer": "https://sws2.maxmanager.xyz/index.php?mode=bed",
+            "Cookie": "domain=sws2.maxmanager.xyz; locId=2; savekennzfilterinput=0; splsws=rhom9pct0fu7q8rvhg6i51m0sc",
+        },
+        data={
+            "func": "make_spl",
+            "locId": "2",
+            "date": {date},
+            "lang": "de",
+            "startThisWeek": {  # monday of current week
+                (
+                    datetime.date.today()
+                    - datetime.timedelta(days=datetime.date.today().weekday())
+                ).strftime("%Y-%m-%d")
+            },
+            "startNextWeek": {  # monday of next week
+                (
+                    datetime.date.today()
+                    - datetime.timedelta(days=datetime.date.today().weekday())
+                    + datetime.timedelta(days=7)
+                ).strftime("%Y-%m-%d")
+            },
+        },
+    )
+
+    # parse html
+    soup = BeautifulSoup(request.text, "html.parser")
+
+    class Essen:
+        def __init__(self, name, foto, preis, vegan, co2, nährwerte):
+            self.name = name
+            self.foto = foto
+            self.preis = preis
+            self.vegan = vegan
+            self.co2 = co2
+            self.nährwerte = nährwerte
+
+    essens_liste = []
+
+    for essen_div in soup.find_all(class_="row splMeal"):
+        name = essen_div.find("span").text.strip()
+        foto = essen_div.find("img")["src"] if essen_div.find("img") is not None else ""
+        preis = "leer"  # essen_div.find(class_='col-md-2 col-sm-3 visible-sm-block visible-md-block visible-lg-block').div.text.strip()
+        vegan_icon = essen_div.find(class_="iconLarge")
+        if vegan_icon is None:
+            vegan = "?"
+        else:
+            vegan = True if vegan_icon["title"] == "vegan" else False
+        co2 = (
+            essen_div.find(class_="azn hidden size-13").find_all("div")[0].text.strip()
+        )
+        nährwerte = (
+            essen_div.find(class_="azn hidden size-13").find_all("div")[1].text.strip()
+        )
+
+        # find the price, it is a div that contains an € sign and a number in the text
+        for div in essen_div.find_all("div"):
+            if "€" in div.text:
+                preis = div.text.strip()
+                break
+
+        essen = Essen(name, foto, preis, vegan, co2, nährwerte)
+        essens_liste.append(essen)
+
+    class EssenDetailed:
+        def __init__(
+            self,
+            name,
+            foto,
+            preis,
+            vegan,
+            co2,
+            brennwert,
+            fett,
+            ges_fett,
+            kohlenhydrate,
+            zucker,
+            eiweiß,
+            salz,
+        ):
+            self.name = name
+            self.foto = foto
+            self.preis = preis
+            self.vegan = vegan
+            self.co2 = co2
+            self.brennwert = brennwert
+            self.fett = fett
+            self.ges_fett = ges_fett
+            self.kohlenhydrate = kohlenhydrate
+            self.zucker = zucker
+            self.eiweiß = eiweiß
+            self.salz = salz
+
+    essens_liste_detailled = []
+
+    for essen_div in soup.find_all(class_="row splMeal"):
+        name = essen_div.find("span").text.strip()
+        foto = essen_div.find("img")["src"] if essen_div.find("img") is not None else ""
+        preis = "leer"  # essen_div.find(class_='col-md-2 col-sm-3 visible-sm-block visible-md-block visible-lg-block').div.text.strip()
+        vegan_icon = essen_div.find(class_="iconLarge")
+        if vegan_icon is None:
+            vegan = "?"
+        else:
+            vegan = True if vegan_icon["title"] == "vegan" else False
+        co2 = (
+            essen_div.find(class_="azn hidden size-13").find_all("div")[0].text.strip()
+        )
+        nährwerte_div = essen_div.find(class_="azn hidden size-13").find_all("div")[1]
+
+        # ignore warnings or dont print them in the console
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            brennwert = nährwerte_div.find("span", text="Brennwert:")
+            brennwert = brennwert.next_sibling.strip() if brennwert else ""
+
+            fett = nährwerte_div.find("span", text="Fett:")
+            fett = fett.next_sibling.strip() if fett else ""
+
+            ges_fett = nährwerte_div.find("span", text=" - davon ges. FS:")
+            ges_fett = ges_fett.next_sibling.strip() if ges_fett else ""
+
+            kohlenhydrate = nährwerte_div.find("span", text="Kohlenhydrate:")
+            kohlenhydrate = kohlenhydrate.next_sibling.strip() if kohlenhydrate else ""
+
+            zucker = nährwerte_div.find("span", text=" - davon Zucker:")
+            zucker = zucker.next_sibling.strip() if zucker else ""
+
+            eiweiß = nährwerte_div.find("span", text="Eiweiß:")
+            eiweiß = eiweiß.next_sibling.strip() if eiweiß else ""
+
+            salz = nährwerte_div.find("span", text="Salz:")
+            salz = salz.next_sibling.strip() if salz else ""
+
+        # find the price, it is a div that contains an € sign and a number in the text
+        for div in essen_div.find_all("div"):
+            if "€" in div.text:
+                preis = div.text.strip()
+                break
+
+        essen = EssenDetailed(
+            name,
+            foto,
+            preis,
+            vegan,
+            co2,
+            brennwert,
+            fett,
+            ges_fett,
+            kohlenhydrate,
+            zucker,
+            eiweiß,
+            salz,
+        )
+        essens_liste_detailled.append(essen)
+
+    # Erstelle DataFrame
+    data = {
+        "Name": [essen.name for essen in essens_liste_detailled],
+        "Foto": [essen.foto for essen in essens_liste_detailled],
+        "Preis": [essen.preis for essen in essens_liste_detailled],
+        "Vegan": [essen.vegan for essen in essens_liste_detailled],
+        "CO2": [essen.co2 for essen in essens_liste_detailled],
+        "Brennwert": [essen.brennwert for essen in essens_liste_detailled],
+        "Fett": [essen.fett for essen in essens_liste_detailled],
+        "Ges. Fett": [essen.ges_fett for essen in essens_liste_detailled],
+        "Kohlenhydrate": [essen.kohlenhydrate for essen in essens_liste_detailled],
+        "Zucker": [essen.zucker for essen in essens_liste_detailled],
+        "Eiweiß": [essen.eiweiß for essen in essens_liste_detailled],
+        "Salz": [essen.salz for essen in essens_liste_detailled],
+    }
+
+    df = pd.DataFrame(data)
+
+    def clean_nutrition_data(row):
+        co2_portion_start = row["CO2"].find("CO2 pro Portion") + len("CO2 pro Portion")
+        co2_portion_end = row["CO2"].find(" g", co2_portion_start)
+        row["CO2 pro Portion"] = row["CO2"][co2_portion_start:co2_portion_end]
+
+        co2_100g_start = row["CO2"].find("CO2 pro 100 g") + len("CO2 pro 100 g")
+        co2_100g_end = row["CO2"].find(" g", co2_100g_start)
+        row["CO2 pro 100 g"] = row["CO2"][co2_100g_start:co2_100g_end]
+
+        brennwert_start = row["CO2"].find("Brennwert:") + len("Brennwert:")
+        brennwert_end = row["CO2"].find(" kcal", brennwert_start)
+        row["Brennwert"] = row["CO2"][brennwert_start:brennwert_end]
+
+        fett_start = row["CO2"].find("Fett:") + len("Fett:")
+        fett_end = row["CO2"].find(" g", fett_start)
+        row["Fett"] = row["CO2"][fett_start:fett_end]
+
+        ges_fett_start = row["CO2"].find("davon ges. FS:") + len("davon ges. FS:")
+        ges_fett_end = row["CO2"].find(" g", ges_fett_start)
+        row["Ges. Fett"] = row["CO2"][ges_fett_start:ges_fett_end]
+
+        kohlenhydrate_start = row["CO2"].find("Kohlenhydrate:") + len("Kohlenhydrate:")
+        kohlenhydrate_end = row["CO2"].find(" g", kohlenhydrate_start)
+        row["Kohlenhydrate"] = row["CO2"][kohlenhydrate_start:kohlenhydrate_end]
+
+        zucker_start = row["CO2"].find("davon Zucker:") + len("davon Zucker:")
+        zucker_end = row["CO2"].find(" g", zucker_start)
+        row["Zucker"] = row["CO2"][zucker_start:zucker_end]
+
+        eiweiß_start = row["CO2"].find("Eiweiß:") + len("Eiweiß:")
+        eiweiß_end = row["CO2"].find(" g", eiweiß_start)
+        row["Eiweiß"] = row["CO2"][eiweiß_start:eiweiß_end]
+
+        salz_start = row["CO2"].find("Salz:") + len("Salz:")
+        salz_end = row["CO2"].find(" g", salz_start)
+        row["Salz"] = row["CO2"][salz_start:salz_end]
+
+        return row
+
+    # Annahme: Das DataFrame heißt df und die Spalte mit den Nährwertinformationen heißt 'CO2'
+    df = df.apply(clean_nutrition_data, axis=1)
+
+    # remove columns Foto and CO2
+    df = df.drop(columns=["Foto", "CO2"])
+
+    # save df to two new dfs called df_raw and df_clean
+    df_clean = df.copy()
+
+    # clean the whole column Preis by extracting the number after the € sign
+    df_clean["Preis"] = df_clean["Preis"].str.extract(r"€\s*(\d+,\d+)")
+    df_clean["Preis"] = df_clean["Preis"].str.replace(",", ".").astype(float)
+
+    # clean column Brennwert by splitting each value at the character 'kj /' and taking the last part
+    df_clean["Brennwert"] = df_clean["Brennwert"].str.split(" kj /").str[-1]
+    df_clean["Brennwert"] = df_clean["Brennwert"].astype(float)
+
+    # remove the columns CO2 pro Portion and CO2 pro 100 g
+    df_clean = df_clean.drop(columns=["CO2 pro Portion", "CO2 pro 100 g"])
+
+    # convert columns Fett, Ges. Fett, Kohlenhydrate, Zucker, Eiweiß and Salz to float
+    df_clean["Fett"] = df_clean["Fett"].astype(float)
+    df_clean["Ges. Fett"] = df_clean["Ges. Fett"].astype(float)
+    df_clean["Kohlenhydrate"] = df_clean["Kohlenhydrate"].astype(float)
+    df_clean["Zucker"] = df_clean["Zucker"].astype(float)
+    df_clean["Eiweiß"] = df_clean["Eiweiß"].astype(float)
+    df_clean["Salz"] = df_clean["Salz"].astype(float)
+
+    # create new columnns 'Brennwert pro Preis' and 'Eiweiß pro Preis' by dividing the columns 'Brennwert' and 'Eiweiß' by the column 'Preis'
+    df_clean["Brennwert pro Preis"] = (df_clean["Brennwert"] / df_clean["Preis"]).round(
+        1
+    )
+    df_clean["Eiweiß pro Preis"] = (df_clean["Eiweiß"] / df_clean["Preis"]).round(1)
+
+    # cut to one decimal place
+    df_clean["Brennwert pro Preis"] = df_clean["Brennwert pro Preis"].round(1)
+    df_clean["Eiweiß pro Preis"] = df_clean["Eiweiß pro Preis"].round(1)
+
+    # create a new df called df_recommend where there are only meals with a 'Preis' higher than 1.5
+    df_recommend = df_clean  # [df_clean['Preis'] > 1.5]
+
+    # show df_recommend sorted by 'Eiweiß pro Preis' and 'Brennwert pro Preis' in descending order
+    df_recommend = df_recommend.sort_values(
+        by=["Eiweiß pro Preis", "Brennwert pro Preis"], ascending=False
+    )
+
+    #  if the 'Preis' is lower than 1.5 put them at the end of the df
+    df_recommend = pd.concat(
+        [
+            df_recommend[df_recommend["Preis"] > 1.5],
+            df_recommend[df_recommend["Preis"] <= 1.5],
+        ]
+    )
+
+    # get the weekday name of the date in german
+    actual_location = locale.getlocale()
+    locale.setlocale(locale.LC_TIME, "de_DE.UTF-8")
+    weekDayGerman = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%A")
+    locale.setlocale(locale.LC_TIME, actual_location)
+
+    # get the date in format: dd.mm.yyyy
+    dateForOutput = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%d.%m.%Y")
+
+    # change the nam of column 'Name' to datename and date
+    df_recommend = df_recommend.rename(
+        columns={"Name": "Empfehlungen für " + weekDayGerman + ", " + dateForOutput}
+    )
+    return df_recommend
