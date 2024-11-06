@@ -5,39 +5,9 @@ import warnings
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
 import datetime
-import os
-import time
-import random
-import json
-import numpy as np
-import matplotlib.pyplot as plt
 import locale
 
-
-# POST /inc/ajax-php_konnektor.inc.php HTTP/1.1
-# Content-Type: application/x-www-form-urlencoded; charset=UTF-8
-# Accept: */*
-# Accept-Language: en-us
-# Accept-Encoding: gzip, deflate, br
-# Host: sws2.maxmanager.xyz
-# Origin: https://sws2.maxmanager.xyz
-# User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15
-# Connection: keep-alive
-# Referer: https://sws2.maxmanager.xyz/index.php?mode=bed
-# Content-Length: 95
-# Cookie: domain=sws2.maxmanager.xyz; locId=2; savekennzfilterinput=0; splsws=rhom9pct0fu7q8rvhg6i51m0sc
-# X-Requested-With: XMLHttpRequest
-
-# Request Data
-# MIME Type: application/x-www-form-urlencoded; charset=UTF-8
-# func: make_spl
-# locId: 2
-# date: 2023-06-29
-# lang: de
-# startThisWeek: 2023-06-26
-# startNextWeek: 2023-07-03
 
 # create an enum for the weekdays to be passed to the run function
 class Weekday:
@@ -50,7 +20,7 @@ class Weekday:
     weekdays = [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]
 
 # create a function that runs the whole script
-def run(weekday: Weekday, ShouldReturnDataFrame: bool):
+def run(weekday: int):
     # get the date of the passed weekday for the next occurence in format YYYY-MM-DD
     def get_date(weekday: Weekday):
         # make a switch case over the weekday enums
@@ -82,18 +52,10 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
     request = requests.post(
         url='https://sws2.maxmanager.xyz/inc/ajax-php_konnektor.inc.php',
         headers={
-        #     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        #     'Accept': '*/*',
-        #     'Accept-Language': 'en-us',
-        #     'Accept-Encoding': 'gzip, deflate, br',
             'Host': 'sws2.maxmanager.xyz',
             'Origin': 'https://sws2.maxmanager.xyz',
-        #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15',
-        #     'Connection': 'keep-alive',
             'Referer': 'https://sws2.maxmanager.xyz/index.php?mode=bed',
-        #     'Content-Length': '95',
             'Cookie': 'domain=sws2.maxmanager.xyz; locId=2; savekennzfilterinput=0; splsws=rhom9pct0fu7q8rvhg6i51m0sc',
-        #     'X-Requested-With': 'XMLHttpRequest'
         },
         data={
             'func': 'make_spl',
@@ -111,11 +73,11 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
         }
     )
 
-    
+
     # parse the html with BeautifulSoup
     soup = BeautifulSoup(request.text, 'html.parser')
 
-    
+
     class Essen:
         def __init__(self, name, foto, preis, vegan, co2, nährwerte):
             self.name = name
@@ -125,7 +87,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
             self.co2 = co2
             self.nährwerte = nährwerte
 
-    
+
     essens_liste = []
 
     for essen_div in soup.find_all(class_='row splMeal'):
@@ -149,7 +111,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
         essen = Essen(name, foto, preis, vegan, co2, nährwerte)
         essens_liste.append(essen)
 
-    
+
     class EssenDetailed:
         def __init__(self, name, foto, preis, vegan, co2, brennwert, fett, ges_fett, kohlenhydrate, zucker, eiweiß, salz):
             self.name = name
@@ -165,7 +127,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
             self.eiweiß = eiweiß
             self.salz = salz
 
-    
+
     essens_liste_detailled = []
 
     for essen_div in soup.find_all(class_='row splMeal'):
@@ -179,28 +141,28 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
             vegan = True if vegan_icon["title"] == "vegan" else False
         co2 = essen_div.find(class_='azn hidden size-13').find_all('div')[0].text.strip()
         nährwerte_div = essen_div.find(class_='azn hidden size-13').find_all('div')[1]
-        
+
         # ignore warnings or dont print them in the console
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             brennwert = nährwerte_div.find('span', text='Brennwert:')
             brennwert = brennwert.next_sibling.strip() if brennwert else ''
-            
+
             fett = nährwerte_div.find('span', text='Fett:')
             fett = fett.next_sibling.strip() if fett else ''
-            
+
             ges_fett = nährwerte_div.find('span', text=' - davon ges. FS:')
             ges_fett = ges_fett.next_sibling.strip() if ges_fett else ''
-            
+
             kohlenhydrate = nährwerte_div.find('span', text='Kohlenhydrate:')
             kohlenhydrate = kohlenhydrate.next_sibling.strip() if kohlenhydrate else ''
-            
+
             zucker = nährwerte_div.find('span', text=' - davon Zucker:')
             zucker = zucker.next_sibling.strip() if zucker else ''
-            
+
             eiweiß = nährwerte_div.find('span', text='Eiweiß:')
             eiweiß = eiweiß.next_sibling.strip() if eiweiß else ''
-            
+
             salz = nährwerte_div.find('span', text='Salz:')
             salz = salz.next_sibling.strip() if salz else ''
 
@@ -213,7 +175,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
         essen = EssenDetailed(name, foto, preis, vegan, co2, brennwert, fett, ges_fett, kohlenhydrate, zucker, eiweiß, salz)
         essens_liste_detailled.append(essen)
 
-    
+
     # Erstelle DataFrame
     data = {
         'Name': [essen.name for essen in essens_liste_detailled],
@@ -232,7 +194,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
 
     df = pd.DataFrame(data)
 
-    
+
     def clean_nutrition_data(row):
         co2_portion_start = row['CO2'].find('CO2 pro Portion') + len('CO2 pro Portion')
         co2_portion_end = row['CO2'].find(' g', co2_portion_start)
@@ -272,34 +234,34 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
 
         return row
 
-    
+
     # Annahme: Das DataFrame heißt df und die Spalte mit den Nährwertinformationen heißt 'CO2'
     df = df.apply(clean_nutrition_data, axis=1)
 
-    
+
     # remove columns Foto and CO2
     df = df.drop(columns=['Foto', 'CO2'])
 
-    
+
     # save df to two new dfs called df_raw and df_clean
     df_raw = df.copy()
     df_clean = df.copy()
 
-    
+
     # clean the whole column Preis by extracting the number after the € sign
     df_clean['Preis'] = df_clean['Preis'].str.extract(r'€\s*(\d+,\d+)')
     df_clean['Preis'] = df_clean['Preis'].str.replace(',', '.').astype(float)
 
-    
+
     # clean column Brennwert by splitting each value at the character 'kj /' and taking the last part
     df_clean['Brennwert'] = df_clean['Brennwert'].str.split(' kj /').str[-1]
     df_clean['Brennwert'] = df_clean['Brennwert'].astype(float)
 
-    
+
     # remove the columns CO2 pro Portion and CO2 pro 100 g
     df_clean = df_clean.drop(columns=['CO2 pro Portion', 'CO2 pro 100 g'])
 
-    
+
     # convert columns Fett, Ges. Fett, Kohlenhydrate, Zucker, Eiweiß and Salz to float
     df_clean['Fett'] = df_clean['Fett'].astype(float)
     df_clean['Ges. Fett'] = df_clean['Ges. Fett'].astype(float)
@@ -308,7 +270,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
     df_clean['Eiweiß'] = df_clean['Eiweiß'].astype(float)
     df_clean['Salz'] = df_clean['Salz'].astype(float)
 
-    
+
     # create new columnns 'Brennwert pro Preis' and 'Eiweiß pro Preis' by dividing the columns 'Brennwert' and 'Eiweiß' by the column 'Preis'
     df_clean['Brennwert pro Preis'] = (df_clean['Brennwert'] / df_clean['Preis']).round(1)
     df_clean['Eiweiß pro Preis'] = (df_clean['Eiweiß'] / df_clean['Preis']).round(1)
@@ -317,7 +279,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
     df_clean['Brennwert pro Preis'] = df_clean['Brennwert pro Preis'].round(1)
     df_clean['Eiweiß pro Preis'] = df_clean['Eiweiß pro Preis'].round(1)
 
-    
+
     # create a new df called df_recommend where there are only meals with a 'Preis' higher than 1.5
     df_recommend = df_clean#[df_clean['Preis'] > 1.5]
 
@@ -336,19 +298,7 @@ def run(weekday: Weekday, ShouldReturnDataFrame: bool):
     # get the date in format: dd.mm.yyyy
     dateForOutput = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%d.%m.%Y')
 
-    
-    if ShouldReturnDataFrame:
-        # change the nam of column 'Name' to datename and date
-        df_recommend = df_recommend.rename(columns={'Name': 'Empfehlungen für ' + weekDayGerman+', '+ dateForOutput})
-        return df_recommend
-    else:
-        result = ''
-        print('Empfehlungen für '+weekDayGerman+', den '+dateForOutput+': ')
-        result += 'Empfehlungen für '+weekDayGerman+', den '+dateForOutput+': '
-        print('-------------------------------------------')
-        result += '\n-------------------------------------------\n'
-        print(df_recommend)
-        result += df_recommend.to_string(index=False)
-
-        return result
+    # change the nam of column 'Name' to datename and date
+    df_recommend = df_recommend.rename(columns={'Name': 'Empfehlungen für ' + weekDayGerman+', '+ dateForOutput})
+    return df_recommend
 

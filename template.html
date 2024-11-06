@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="Website/stylesheet.css">
+  <script src="Website/script.js"></script>
+  <title>Der Mensa Krabbler</title>
+  <link rel="icon" href="Website/krebs_icon.png">
+</head>
+<body>
+  <header>
+    <div class="brand">
+        <span>
+          <img src="Website/krebs_icon.png">
+        </span>
+        <h1>Mensa Krabbler</h1>
+      </div>
+  </header>
+  <div id="button-frame">
+    <button id="button1" class="weekday-button" onclick="showTable('monday'), activateButton(1)">Montag</button>
+    <button id="button2" class="weekday-button" onclick="showTable('tuesday'), activateButton(2)">Dienstag</button>
+    <button id="button3" class="weekday-button" onclick="showTable('wednesday'), activateButton(3)">Mittwoch</button>
+    <button id="button4" class="weekday-button" onclick="showTable('thursday'), activateButton(4)">Donnerstag</button>
+    <button id="button5" class="weekday-button" onclick="showTable('friday'),activateButton(5)">Freitag</button>
+  </div>
+  <div id="table-container">
+    <div id="monday-table" class="hidden">{monday_html}</div>
+    <div id="tuesday-table" class="hidden">{tuesday_html}</div>
+    <div id="wednesday-table" class="hidden">{wednesday_html}</div>
+    <div id="thursday-table" class="hidden">{thursday_html}</div>
+    <div id="friday-table" class="hidden">{friday_html}</div>
+  </div>
+  <p id="output-text">{date_updated}</p>
+</body>
+</html>
