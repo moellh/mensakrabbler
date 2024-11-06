@@ -8,34 +8,12 @@ speisen_recommendation_dataframes = [
     MensaKrabbler.run(weekday) for weekday in MensaKrabbler.Weekday.weekdays
 ]
 
-# Exportiere die DataFrames als separate HTML-Dateien
-speisen_recommendation_dataframes[0].to_html(
-    "Website/monday_table.html", index=False
-)
-speisen_recommendation_dataframes[1].to_html(
-    "Website/tuesday_table.html", index=False
-)
-speisen_recommendation_dataframes[2].to_html(
-    "Website/wednesday_table.html", index=False
-)
-speisen_recommendation_dataframes[3].to_html(
-    "Website/thursday_table.html", index=False
-)
-speisen_recommendation_dataframes[4].to_html(
-    "Website/friday_table.html", index=False
-)
-
-# Lies den Inhalt der HTML-Dateien ein
-with open("Website/monday_table.html", "r") as f:
-    monday_html = f.read()
-with open("Website/tuesday_table.html", "r") as f:
-    tuesday_html = f.read()
-with open("Website/wednesday_table.html", "r") as f:
-    wednesday_html = f.read()
-with open("Website/thursday_table.html", "r") as f:
-    thursday_html = f.read()
-with open("Website/friday_table.html", "r") as f:
-    friday_html = f.read()
+# Exportiere die DataFrames als separate HTML-Strings
+monday_html = speisen_recommendation_dataframes[0].to_html( index=False)
+tuesday_html = speisen_recommendation_dataframes[1].to_html( index=False)
+wednesday_html = speisen_recommendation_dataframes[2].to_html( index=False)
+thursday_html = speisen_recommendation_dataframes[3].to_html( index=False)
+friday_html = speisen_recommendation_dataframes[4].to_html(index=False)
 
 # Erzeuge den HTML-Code für die kombinierte Seite mit Button-Auswahl
 html_template = ""
@@ -76,5 +54,3 @@ os.system(
         datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S")
     )
 )
-
-os.system("cp ./index.html /var/www/html/mensakrabbler/index.html")
