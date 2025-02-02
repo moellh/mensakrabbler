@@ -44,13 +44,5 @@ html_content = html_template.format(
 )
 
 # Speichere den kombinierten HTML-Code in einer Datei
-with open("index.html", "w") as f:
+with open("website/index.html", "w") as f:
     f.write(html_content)
-
-# Commit to git history
-os.system("git add index.html")
-os.system(
-    'git commit -m "Update index.html{}"'.format(
-        datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S")
-    )
-)

@@ -1,29 +1,52 @@
 <!DOCTYPE html>
 <html>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://moellh.com/mensakrabbler/Website/stylesheet.css">
-  <script src="https://moellh.com/mensakrabbler/Website/script.js"></script>
-  <title>Der Mensa Krabbler</title>
-  <link rel="icon" href="https://moellh.com/mensakrabbler/Website/krebs_icon.png">
-</head>
-<body>
-  <header>
-    <div class="brand">
-        <span>
-          <img src="https://moellh.com/mensakrabbler/Website/krebs_icon.png">
-        </span>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts/main.js"></script>
+
+    <link rel="icon" href="images/krebs_icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+    <title>Der Mensa Krabbler</title>
+    <meta name="description" content="Infos zu den Gerichten der Mensa an der Universität Stuttgart.">
+  </head>
+  <body class=".dark-mode">
+    <div class="above-footer">
+      <header>
+        <img class="icon" src="images/krebs_icon.png">
         <h1>Mensa Krabbler</h1>
+        <div class="toggle-container" id="theme-toggle">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </div>
+      </header>
+      <div id="weekday-buttons">
+        <button class="weekday-button" onclick="showTable(1)">Montag</button>
+        <button class="weekday-button" onclick="showTable(2)">Dienstag</button>
+        <button class="weekday-button" onclick="showTable(3)">Mittwoch</button>
+        <button class="weekday-button" onclick="showTable(4)">Donnerstag</button>
+        <button class="weekday-button" onclick="showTable(5)">Freitag</button>
       </div>
-  </header>
-  <div id="button-frame">
-    <button id="button1" class="weekday-button" onclick="showTable('monday'), activateButton(1)">Montag</button>
-    <button id="button2" class="weekday-button" onclick="showTable('tuesday'), activateButton(2)">Dienstag</button>
-    <button id="button3" class="weekday-button" onclick="showTable('wednesday'), activateButton(3)">Mittwoch</button>
-    <button id="button4" class="weekday-button" onclick="showTable('thursday'), activateButton(4)">Donnerstag</button>
-    <button id="button5" class="weekday-button" onclick="showTable('friday'),activateButton(5)">Freitag</button>
-  </div>
-  <div id="table-container">
-    <div id="monday-table" class="hidden"><table border="1" class="dataframe">
+      <div id="table-container">
+        <div class="weekday-table"><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Empfehlungen für Montag, 03.02.2025</th>
@@ -295,7 +318,7 @@
     </tr>
   </tbody>
 </table></div>
-    <div id="tuesday-table" class="hidden"><table border="1" class="dataframe">
+        <div class="weekday-table"><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Empfehlungen für Dienstag, 04.02.2025</th>
@@ -581,7 +604,7 @@
     </tr>
   </tbody>
 </table></div>
-    <div id="wednesday-table" class="hidden"><table border="1" class="dataframe">
+        <div class="weekday-table"><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Empfehlungen für Mittwoch, 05.02.2025</th>
@@ -867,7 +890,7 @@
     </tr>
   </tbody>
 </table></div>
-    <div id="thursday-table" class="hidden"><table border="1" class="dataframe">
+        <div class="weekday-table"><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Empfehlungen für Donnerstag, 06.02.2025</th>
@@ -1125,7 +1148,7 @@
     </tr>
   </tbody>
 </table></div>
-    <div id="friday-table" class="hidden"><table border="1" class="dataframe">
+        <div class="weekday-table"><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Empfehlungen für Freitag, 07.02.2025</th>
@@ -1397,7 +1420,10 @@
     </tr>
   </tbody>
 </table></div>
-  </div>
-  <p id="output-text">Letztes Update am Sonntag, 02.02.2025</p>
-</body>
+      </div>
+    </div>
+    <footer>
+      <p>Letztes Update am Sonntag, 02.02.2025</p>
+    </footer>
+  </body>
 </html>
