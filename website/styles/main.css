@@ -173,6 +173,7 @@ header h1 {
 .dataframe {
     border-collapse: collapse;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    margin: 0 auto;
 }
 
 .dataframe th, .dataframe td {
@@ -200,8 +201,6 @@ header h1 {
 #table-container {
     width: 100%;
     overflow: auto;
-    display: flex;
-    justify-content: center;
 }
 
 footer {
