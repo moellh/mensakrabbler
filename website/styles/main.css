@@ -200,6 +200,8 @@ header h1 {
 #table-container {
     width: 100%;
     overflow: auto;
+    display: flex;
+    justify-content: center;
 }
 
 footer {
